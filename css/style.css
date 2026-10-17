@@ -266,7 +266,10 @@ button, input, select { font: inherit; }
 .slot[data-seat="1"] { left: 18%; top: 50%; }
 .slot[data-seat="2"] { left: 50%; top: 20%; }
 .slot[data-seat="3"] { left: 82%; top: 50%; }
-.slot .card { --cw: clamp(34px, calc(var(--d) * 0.15), 80px); }
+.slot .card {
+  --cw: clamp(34px, calc(var(--d) * 0.15), 80px);
+  border: 2px solid #fff; box-shadow: 0 0 0 1px rgba(60, 10, 5, 0.35), 0 8px 16px rgba(30, 0, 0, 0.55);
+}
 .slot .card { animation: land 0.32s cubic-bezier(0.2, 0.9, 0.3, 1.2); }
 .slot .card.win { box-shadow: 0 0 0 3px var(--gold), 0 0 20px var(--gold); }
 @keyframes land { from { transform: translateY(var(--from, 60px)) scale(1.25) rotate(-8deg); opacity: 0; } to { transform: none; opacity: 1; } }
@@ -541,7 +544,8 @@ button.card { padding: 0; font: inherit; text-align: initial; appearance: none; 
   .board { padding-top: 0; }
   .board .cheat { display: block; }
   .table-zone { container-type: normal; }
-  .banzhuo { --d: min(100%, 40vh, 420px); }
+  .banzhuo { --d: min(calc(100vw - 32px), 44vh, 420px); }
+  .slot .card { --cw: clamp(46px, calc(var(--d) * 0.17), 64px); }
   .me { grid-template-columns: minmax(0, 1fr); padding: 8px; }
   .me-id { flex-direction: row; width: auto; justify-content: space-between; }
   .portrait { width: 64px; height: 64px; }
