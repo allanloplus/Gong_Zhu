@@ -152,6 +152,11 @@
         [['allan', '這局被 {who} 拿下了……我們要檢討控制措施的有效性。', 'confused'], ['arale', '老師，再來一局！這次阿拉蕾一定會保護你！', 'cheer']],
       ],
     },
+    voiceTest: {
+      allan: [['allan', '大家好，我是 Allan，Team Taiwan 資安顧問。今天一起來拱豬！', 'smile']],
+      arale: [['arale', '哇嗚～我是阿拉蕾，今天也要幫老師拱豬喔！', 'cheer']],
+    },
+    voiceOn: [['arale', '語音開啟囉！', 'cheer']],
   };
 
   root.CAST = CAST;

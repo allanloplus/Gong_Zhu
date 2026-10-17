@@ -1,12 +1,21 @@
-/* 拱豬夜市 — 語音（瀏覽器內建 Web Speech API，台灣華語）
- * Allan：優先使用台灣男聲（Microsoft YunJhe / Zhiwei）
- * 阿拉蕾：優先使用台灣年輕女聲（Microsoft HsiaoYu / HsiaoChen / Yating / Hanhan、Google 國語（臺灣）、Mei-Jia）
- * 使用者可在「語音設定」改選，設定存在 localStorage。
+/* 拱豬夜市 — 語音
+ * 1. 課程配音（預設）：tools/build_audio.py 用 edge-tts 預先合成的 mp3，聲線與課程影片相同
+ *    Allan = zh-TW-YunJheNeural（+6%、-2Hz），阿拉蕾 = zh-TW-HsiaoYuNeural（+10%、+28Hz）
+ *    整句沒有音檔時，會試著用逐句音檔拼接（例如「問阿拉蕾」的提示）。
+ * 2. 瀏覽器語音（備援）：找不到音檔、或在「設定」改選其他聲線時，改用 Web Speech API。
+ * 設定存在 localStorage。
  */
 (function (root) {
   'use strict';
   const synth = root.speechSynthesis;
-  const KEY = 'gz.voice.v1';
+  const MANIFEST = root.AUDIO_MANIFEST || {};
+  const HAS_RECORDED = Object.keys(MANIFEST).length > 0;
+  const KEY = 'gz.voice.v2';
+
+  const COURSE_VOICE = {
+    allan: 'zh-TW-YunJheNeural（課程 Allan 聲線）',
+    arale: 'zh-TW-HsiaoYuNeural（課程阿拉蕾聲線）',
+  };
 
   const PREFER = {
     allan: [/YunJhe/i, /Zhiwei/i, /zh[-_]TW.*(male|男)/i, /Yun\w*.*Taiwan/i],
@@ -14,18 +23,19 @@
     hacker: [/Zhiwei/i, /YunJhe/i, /Yunxi/i, /Yunyang/i],
     phishy: [/HsiaoChen/i, /Hanhan/i, /Mei-?Jia/i, /Xiaoxiao/i, /Yating/i],
   };
-  // 找不到專屬聲線時，用音高/語速做出區別
-  const DEFAULT_TUNE = {
-    allan: { pitch: 0.95, rate: 1.0 },
-    arale: { pitch: 1.3, rate: 1.08 },
-    hacker: { pitch: 0.7, rate: 1.05 },
-    phishy: { pitch: 1.15, rate: 0.95 },
+  // 瀏覽器語音：用音高/語速逼近課程聲線（YunJhe 原速、HsiaoYu 調高）
+  const BROWSER_TUNE = {
+    allan: { pitch: 0.95, rate: 1.05 },
+    arale: { pitch: 1.35, rate: 1.1 },
+    hacker: { pitch: 0.7, rate: 1.1 },
+    phishy: { pitch: 1.1, rate: 0.95 },
   };
 
   let settings = { enabled: true, npc: true, volume: 1, voices: {}, tune: {} };
   try { Object.assign(settings, JSON.parse(localStorage.getItem(KEY) || '{}')); } catch (e) { /* 無痕模式 */ }
   const save = () => { try { localStorage.setItem(KEY, JSON.stringify(settings)); } catch (e) { /* ignore */ } };
 
+  const listeners = [];
   let voices = [];
   function loadVoices() {
     if (!synth) return [];
@@ -36,9 +46,8 @@
     loadVoices();
     synth.onvoiceschanged = () => { loadVoices(); listeners.forEach((f) => f()); };
   }
-  const listeners = [];
 
-  function isTW(v) { return /TW|Hant|Taiwan|臺灣|台灣/i.test(v.lang + ' ' + v.name); }
+  const isTW = (v) => /TW|Hant|Taiwan|臺灣|台灣/i.test(v.lang + ' ' + v.name);
 
   function pickVoice(who) {
     const chosen = settings.voices[who];
@@ -54,62 +63,146 @@
     return voices.find(isTW) || voices[0] || null;
   }
 
+  /** recorded = 用課程配音；browser = 使用者在設定改選了瀏覽器聲線 */
+  const mode = (who) => (HAS_RECORDED && !settings.voices[who] ? 'recorded' : 'browser');
+
   function tuneFor(who) {
-    const base = DEFAULT_TUNE[who] || { pitch: 1, rate: 1 };
     const t = settings.tune[who] || {};
-    const v = pickVoice(who);
-    // 如果 Allan 只能借用女聲，就把音高壓低一點
-    let pitch = t.pitch != null ? t.pitch : base.pitch;
-    if (who === 'allan' && t.pitch == null && v && !/YunJhe|Zhiwei|Yun|male|男/i.test(v.name)) pitch = 0.6;
-    return { pitch, rate: t.rate != null ? t.rate : base.rate };
+    if (mode(who) === 'recorded') return { pitch: null, rate: t.speed != null ? t.speed : 1 };
+    const base = BROWSER_TUNE[who] || { pitch: 1, rate: 1 };
+    return { pitch: t.pitch != null ? t.pitch : base.pitch, rate: t.rate != null ? t.rate : base.rate };
   }
 
-  // 依序播放，避免台詞互相打斷；排太多就丟掉最舊的
-  const queue = [];
-  let speaking = false;
-  function pump() {
-    if (speaking || !queue.length) return;
-    const job = queue.shift();
-    const u = new SpeechSynthesisUtterance(job.text);
-    const v = pickVoice(job.who);
-    if (v) { u.voice = v; u.lang = v.lang; } else u.lang = 'zh-TW';
-    const t = tuneFor(job.who);
-    u.pitch = t.pitch; u.rate = t.rate; u.volume = settings.volume;
-    speaking = true;
-    const done = () => { speaking = false; job.resolve(); setTimeout(pump, 120); };
-    u.onend = done; u.onerror = done;
-    job.onstart && (u.onstart = job.onstart);
-    synth.speak(u);
-    // 有些瀏覽器不會觸發 onend，保險起見
-    setTimeout(() => { if (speaking && !synth.speaking) done(); }, 400 + job.text.length * 260);
+  /** 跟 tools/build_audio.py 的 sentences() 相同的斷句 */
+  const sentences = (text) => (text.match(/[^。！？]+[。！？]?/g) || []).map((s) => s.trim()).filter(Boolean);
+
+  function clipsFor(who, text) {
+    const whole = MANIFEST[who + '|' + text];
+    if (whole) return [whole];
+    const parts = sentences(text);
+    if (parts.length > 1 && parts.every((p) => MANIFEST[who + '|' + p])) return parts.map((p) => MANIFEST[who + '|' + p]);
+    return null;
+  }
+
+  // ---------- 播放 ----------
+  const audio = typeof Audio !== 'undefined' ? new Audio() : null;
+  if (audio) audio.preload = 'auto';
+
+  function playClip(src, rate) {
+    return new Promise((resolve, reject) => {
+      let settled = false;
+      const end = (ok) => {
+        if (settled) return;
+        settled = true;
+        audio.onended = audio.onerror = null;
+        ok ? resolve() : reject(new Error('audio'));
+      };
+      audio.onended = () => end(true);
+      audio.onerror = () => end(false);
+      audio.src = src;
+      audio.muted = false;
+      audio.volume = settings.volume;
+      audio.playbackRate = rate;
+      if ('preservesPitch' in audio) audio.preservesPitch = true;
+      const p = audio.play();
+      if (p && p.catch) p.catch(() => end(false));
+    });
   }
 
   function clean(text) {
     return text.replace(/[♠♥♣♦]/g, (s) => ({ '♠': '黑桃', '♥': '紅心', '♣': '梅花', '♦': '方塊' }[s]))
       .replace(/～/g, '').replace(/\bKPI\b/g, 'K P I').replace(/\bPDCA\b/g, 'P D C A').replace(/\bMVP\b/g, 'M V P')
-      .replace(/\bSIEM\b/g, 'S I E M').replace(/\bport\b/g, 'port').replace(/\+(\d+)/g, '加$1').replace(/-(\d+)/g, '負$1');
+      .replace(/\bSIEM\b/g, 'S I E M').replace(/165/g, '一六五').replace(/\+(\d+)/g, '加$1').replace(/-(\d+)/g, '負$1');
+  }
+
+  function browserSay(job) {
+    return new Promise((resolve) => {
+      if (!synth) return resolve();
+      const u = new SpeechSynthesisUtterance(clean(job.text));
+      const v = pickVoice(job.who);
+      if (v) { u.voice = v; u.lang = v.lang; } else u.lang = 'zh-TW';
+      const t = tuneFor(job.who);
+      u.pitch = t.pitch; u.rate = t.rate; u.volume = settings.volume;
+      let done = false;
+      const fin = () => { if (!done) { done = true; resolve(); } };
+      u.onend = fin; u.onerror = fin;
+      synth.speak(u);
+      // 有些瀏覽器不會觸發 onend，保險起見
+      setTimeout(() => { if (!synth.speaking) fin(); }, 400 + job.text.length * 260);
+    });
+  }
+
+  // 依序播放，避免台詞互相打斷；排太多就丟掉最舊的
+  const queue = [];
+  let speaking = false;
+  let stopGen = 0;
+
+  async function pump() {
+    if (speaking || !queue.length) return;
+    const job = queue.shift();
+    speaking = true;
+    const gen = stopGen;
+    const clips = mode(job.who) === 'recorded' && audio ? clipsFor(job.who, job.text) : null;
+    try {
+      if (clips) {
+        for (const c of clips) {
+          if (gen !== stopGen) break;
+          await playClip(c, tuneFor(job.who).rate);
+        }
+      } else {
+        await browserSay(job);
+      }
+    } catch (e) {
+      // 自動播放被擋或音檔讀不到 → 改用瀏覽器語音念這一句
+      if (gen === stopGen) await browserSay(job);
+    }
+    job.resolve();
+    if (gen === stopGen) { speaking = false; setTimeout(pump, 120); }
   }
 
   function speak(who, text, opts = {}) {
-    if (!synth || (!settings.enabled && !opts.force)) return Promise.resolve();
+    if (!settings.enabled && !opts.force) return Promise.resolve();
     if ((who === 'hacker' || who === 'phishy') && !settings.npc && !opts.force) return Promise.resolve();
-    if (opts.interrupt) { queue.length = 0; synth.cancel(); speaking = false; }
+    if (opts.interrupt) stop();
     while (queue.length > 3) queue.shift().resolve();
-    return new Promise((resolve) => { queue.push({ who, text: clean(text), resolve, onstart: opts.onstart }); pump(); });
+    return new Promise((resolve) => { queue.push({ who, text, resolve }); pump(); });
   }
 
-  function stop() { queue.length = 0; if (synth) synth.cancel(); speaking = false; }
+  function stop() {
+    stopGen++;
+    while (queue.length) queue.shift().resolve();
+    if (synth) synth.cancel();
+    if (audio) { audio.pause(); if (audio.onended) audio.onended(); }
+    speaking = false;
+  }
+
+  /** 行動裝置要在使用者點擊時先播一次，之後才能自動播放 */
+  function unlock() {
+    if (audio && HAS_RECORDED && !speaking) {
+      const src = MANIFEST[Object.keys(MANIFEST)[0]];
+      audio.muted = true;
+      audio.src = src;
+      const p = audio.play();
+      // 只停掉這次的靜音試播；如果台詞已經開始播，就不要動它
+      const back = () => { if (audio.muted && audio.src.endsWith(src)) audio.pause(); audio.muted = false; };
+      if (p && p.then) p.then(back, back); else back();
+    }
+    try { if (synth) { const u = new SpeechSynthesisUtterance(' '); u.volume = 0; synth.speak(u); } } catch (e) { /* ignore */ }
+  }
 
   const Voice = {
-    supported: !!synth,
+    supported: HAS_RECORDED || !!synth,
+    hasRecorded: HAS_RECORDED,
+    browserSupported: !!synth,
+    COURSE_VOICE,
     get settings() { return settings; },
     set(patch) { Object.assign(settings, patch); save(); if (!settings.enabled) stop(); },
     setVoice(who, name) { settings.voices[who] = name || undefined; save(); },
     setTune(who, tune) { settings.tune[who] = Object.assign({}, settings.tune[who], tune); save(); },
-    tuneFor, pickVoice,
+    mode, tuneFor, pickVoice,
     list() { return loadVoices(); },
     onChange(f) { listeners.push(f); },
-    speak, stop,
+    speak, stop, unlock,
     get busy() { return speaking || queue.length > 0; },
   };
   root.Voice = Voice;

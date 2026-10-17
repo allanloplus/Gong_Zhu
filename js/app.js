@@ -656,8 +656,8 @@
   }
 
   function unlockSpeech() {
-    // 行動裝置需要在使用者點擊時先「說」一次，之後才能自動播放
-    try { if (window.speechSynthesis) { const u = new SpeechSynthesisUtterance(' '); u.volume = 0; speechSynthesis.speak(u); } } catch (e) { /* ignore */ }
+    // 行動裝置需要在使用者點擊時先播一次聲音，之後才能自動播放
+    Voice.unlock();
   }
 
   $('#btnStart').addEventListener('click', () => {
@@ -682,7 +682,7 @@
   $('#btnVoice').addEventListener('click', () => {
     if (!Voice.supported) return;
     Voice.set({ enabled: !Voice.settings.enabled });
-    if (Voice.settings.enabled) { unlockSpeech(); Voice.speak('arale', '語音開啟囉！'); }
+    if (Voice.settings.enabled) { unlockSpeech(); const [w, t] = LINES.voiceOn[0]; Voice.speak(w, t); }
     syncVoiceBtn();
   });
 
@@ -690,32 +690,46 @@
     const list = Voice.list();
     for (const who of ['allan', 'arale']) {
       const sel = $(`#voice-${who}`);
-      const chosen = Voice.settings.voices[who] || '';
       const auto = Voice.pickVoice(who);
-      sel.innerHTML = `<option value="">自動（${auto ? auto.name : '系統預設'}）</option>` +
-        list.map((v) => `<option value="${v.name.replace(/"/g, '&quot;')}">${v.name}（${v.lang}）</option>`).join('');
-      sel.value = chosen;
+      const first = Voice.hasRecorded
+        ? `課程配音：${Voice.COURSE_VOICE[who]}（建議）`
+        : `自動（${auto ? auto.name : '系統預設'}）`;
+      sel.innerHTML = `<option value="">${first}</option>` +
+        list.map((v) => `<option value="${v.name.replace(/"/g, '&quot;')}">瀏覽器：${v.name}（${v.lang}）</option>`).join('');
+      sel.value = Voice.settings.voices[who] || '';
+      const recorded = Voice.mode(who) === 'recorded';
       const t = Voice.tuneFor(who);
-      $(`#pitch-${who}`).value = t.pitch; $(`#pitchOut-${who}`).textContent = Number(t.pitch).toFixed(2);
-      $(`#rate-${who}`).value = t.rate; $(`#rateOut-${who}`).textContent = Number(t.rate).toFixed(2);
+      const pitch = $(`#pitch-${who}`);
+      pitch.disabled = recorded;
+      pitch.value = recorded ? 1 : t.pitch;
+      $(`#pitchOut-${who}`).textContent = recorded ? '課程原音' : Number(t.pitch).toFixed(2);
+      $(`#rate-${who}`).value = t.rate; $(`#rateOut-${who}`).textContent = Number(t.rate).toFixed(2) + (recorded ? ' 倍' : '');
     }
     const tw = list.filter((v) => /TW|Hant|Taiwan|臺灣|台灣/i.test(v.lang + v.name));
-    $('#voiceSupport').textContent = !Voice.supported
-      ? '這個瀏覽器不支援語音合成，對話會以文字顯示。'
-      : tw.length
-        ? `找到 ${tw.length} 個台灣華語聲線。Allan 預設用台灣男聲（YunJhe / Zhiwei），阿拉蕾預設用台灣年輕女聲（HsiaoYu / HsiaoChen / Yating）。Edge 瀏覽器的聲線最完整。`
-        : '沒有找到台灣華語聲線，會借用其他中文聲線並調整音高。建議使用 Microsoft Edge 以取得台灣男聲與女聲。';
+    $('#voiceSupport').textContent = Voice.hasRecorded
+      ? '預設使用課程配音：Allan 是台灣男聲 YunJhe、阿拉蕾是調高音調的台灣女聲 HsiaoYu，任何瀏覽器聽起來都一樣。語速以課程原速為 1 倍；也可以改選瀏覽器內建聲線。'
+      : !Voice.supported
+        ? '這個瀏覽器不支援語音合成，對話會以文字顯示。'
+        : tw.length
+          ? `找到 ${tw.length} 個台灣華語聲線。`
+          : '沒有找到台灣華語聲線，會借用其他中文聲線並調整音高。';
   }
   Voice.onChange(() => { if (!$('#settingsModal').hidden) fillVoiceSelects(); });
 
   for (const who of ['allan', 'arale']) {
     $(`#voice-${who}`).addEventListener('change', (e) => { Voice.setVoice(who, e.target.value); fillVoiceSelects(); });
     $(`#pitch-${who}`).addEventListener('input', (e) => { Voice.setTune(who, { pitch: +e.target.value }); $(`#pitchOut-${who}`).textContent = (+e.target.value).toFixed(2); });
-    $(`#rate-${who}`).addEventListener('input', (e) => { Voice.setTune(who, { rate: +e.target.value }); $(`#rateOut-${who}`).textContent = (+e.target.value).toFixed(2); });
+    $(`#rate-${who}`).addEventListener('input', (e) => {
+      const recorded = Voice.mode(who) === 'recorded';
+      Voice.setTune(who, recorded ? { speed: +e.target.value } : { rate: +e.target.value });
+      $(`#rateOut-${who}`).textContent = (+e.target.value).toFixed(2) + (recorded ? ' 倍' : '');
+    });
   }
   document.querySelectorAll('[data-test]').forEach((b) => b.addEventListener('click', () => {
     const who = b.dataset.test;
-    Voice.speak(who, who === 'allan' ? '大家好，我是 Allan，Team Taiwan 資安顧問。' : '哇嗚～我是阿拉蕾，今天也要幫老師拱豬喔！', { interrupt: true, force: true });
+    const [w, text] = LINES.voiceTest[who][0];
+    Voice.unlock();
+    Voice.speak(w, text, { interrupt: true, force: true });
   }));
 
   $('#btnSettings').addEventListener('click', () => {
