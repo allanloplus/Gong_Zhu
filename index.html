@@ -1,0 +1,248 @@
+<!doctype html>
+<html lang="zh-Hant-TW">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>拱豬夜市</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<meta name="description" content="Allan 與 AI 小助手阿拉蕾的拱豬紙牌夜市：四人拱豬、亮牌加倍、台灣華語語音對話。">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bungee&family=Chiron+GoRound+TC:wght@400;700;900&family=Noto+Sans+TC:wght@400;500;700;900&family=Azeret+Mono:wght@500;700&display=swap">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<canvas id="sky" aria-hidden="true"></canvas>
+<div class="lantern-string" id="lanterns" aria-hidden="true"></div>
+<div class="street-sign left" aria-hidden="true"><span>珍珠奶茶</span><span>鹹酥雞</span></div>
+<div class="street-sign right" aria-hidden="true"><span>大腸包小腸</span><span>蚵仔煎</span></div>
+
+<div class="app">
+  <header class="marquee">
+    <div class="brand">
+      <span class="brand-zh">拱豬夜市</span>
+      <span class="brand-en">GONG ZHU NIGHT MARKET</span>
+    </div>
+    <div class="round-info" aria-live="polite">
+      <span>第 <b id="handNo">1</b> 手</span>
+      <span>第 <b id="trickNo">0</b>/13 墩</span>
+    </div>
+    <nav class="top-actions">
+      <a class="btn ghost" href="rules.html" target="_blank" rel="noopener">規則說明</a>
+      <button class="btn ghost" id="btnVoice" type="button" aria-pressed="true">語音：開</button>
+      <button class="btn ghost" id="btnSettings" type="button">設定</button>
+      <button class="btn fire" id="btnNew" type="button">新局</button>
+    </nav>
+  </header>
+
+  <main class="market">
+    <aside class="board" aria-label="計分看板">
+      <section class="flapboard">
+        <header>
+          <span class="fb-zh">拱豬號 · 戰況看板</span>
+          <span class="fb-en">SCOREBOARD</span>
+        </header>
+        <div class="fb-row fb-head"><span>玩家</span><span>本手</span><span>累計</span></div>
+        <div id="scoreRows"></div>
+        <footer id="goalText">累計到 -1000 分即散場</footer>
+      </section>
+      <section class="cheat">
+        <h2>分數速查</h2>
+        <ul>
+          <li><span class="chip pig">豬</span><span>♠Q 勒索豬</span><b>-100</b></li>
+          <li><span class="chip sheep">羊</span><span>♦J 資安預算羊</span><b>+100</b></li>
+          <li><span class="chip ten">變</span><span>♣10 變壓器</span><b>×2</b></li>
+          <li><span class="chip heart">♥</span><span>A/K/Q/J</span><b>-50/40/30/20</b></li>
+          <li><span class="chip heart">♥</span><span>10 ~ 5</span><b>各 -10</b></li>
+          <li><span class="chip heart">♥</span><span>收齊 13 張（全紅）</span><b>+200</b></li>
+          <li><span class="chip gold">滿</span><span>16 張全收</span><b>+800</b></li>
+        </ul>
+        <p class="cheat-note">亮牌的牌分數加倍，變壓器亮牌變 ×4。</p>
+      </section>
+    </aside>
+
+    <section class="stage" aria-label="牌桌">
+      <div class="stalls" id="stalls"></div>
+
+      <div class="table-zone">
+        <div class="banzhuo" id="banzhuo">
+          <div class="susan" id="susan">
+            <div class="susan-hub" id="hub"><span id="hubTop">開桌</span><span id="hubSub">準備中</span></div>
+          </div>
+        </div>
+        <p class="status" id="status" role="status">歡迎光臨拱豬夜市</p>
+      </div>
+
+      <div class="me" id="me">
+        <div class="me-id">
+          <div class="portrait" id="allanPortrait">
+            <img id="allanFace" src="assets/img/allan-smile.webp" alt="Allan 的表情">
+            <div class="bubble me-bubble" id="bubble-0" hidden></div>
+          </div>
+          <div class="nameplate">
+            <b>Allan</b>
+            <span class="team">TEAM TAIWAN · 資安顧問</span>
+            <div class="captured" id="cap-0"></div>
+          </div>
+          <button class="btn jade" id="btnHint" type="button" disabled>問阿拉蕾</button>
+        </div>
+        <div class="hand" id="hand" aria-label="你的手牌"></div>
+      </div>
+    </section>
+
+    <aside class="chat" id="chat" aria-label="對話">
+      <header class="chat-head">
+        <button class="chat-toggle" id="chatToggle" type="button" aria-expanded="true">
+          <span class="chat-title">拱豬夜市群組</span><span class="chat-count">(4)</span>
+        </button>
+        <span class="chat-sub">Allan、阿拉蕾、黑帽阿駭、釣魚姐</span>
+      </header>
+      <ol class="chat-log" id="chatLog" aria-live="polite"></ol>
+    </aside>
+  </main>
+</div>
+
+<!-- 開場 -->
+<div class="overlay" id="intro">
+  <div class="gate">
+    <div class="gate-arch"><span>拱豬夜市</span><small>每晚開桌 · 豬來就拱</small></div>
+    <div class="gate-cast">
+      <img src="assets/img/allan-wave.webp" alt="Allan 揮手打招呼" class="cast-allan">
+      <div class="gate-copy">
+        <h1>今晚，誰會被豬拱？</h1>
+        <p>你是 <b>Allan</b>，TEAM TAIWAN 資安顧問。AI 小助手 <b>阿拉蕾</b>、零時差漏洞收藏家 <b>黑帽阿駭</b>、社交工程一姐 <b>釣魚姐</b>，已經在攤位上等你。</p>
+        <div class="opts">
+          <fieldset>
+            <legend>散場條件</legend>
+            <label><input type="radio" name="mode" id="modeLimit" value="limit" checked> 有人累計 -1000 分</label>
+            <label><input type="radio" name="mode" id="modeHands" value="hands"> 快速局：打 4 手</label>
+          </fieldset>
+          <fieldset>
+            <legend>出牌速度</legend>
+            <label><input type="radio" name="speed" id="speedSlow" value="slow"> 慢</label>
+            <label><input type="radio" name="speed" id="speedMid" value="mid" checked> 中</label>
+            <label><input type="radio" name="speed" id="speedFast" value="fast"> 快</label>
+          </fieldset>
+          <label class="voice-opt"><input type="checkbox" id="introVoice" checked> 開啟語音（Allan 男聲 × 阿拉蕾女聲）</label>
+        </div>
+        <div class="gate-actions">
+          <button class="btn fire big" id="btnStart" type="button">進場開拱！</button>
+          <a class="btn ghost" href="rules.html" target="_blank" rel="noopener">先看規則</a>
+        </div>
+      </div>
+      <img src="assets/img/arale-wave.webp" alt="阿拉蕾揮手打招呼" class="cast-arale">
+    </div>
+  </div>
+</div>
+
+<!-- 亮牌 -->
+<div class="overlay" id="exposeModal" hidden>
+  <div class="panel expose-panel" role="dialog" aria-modal="true" aria-labelledby="exposeTitle">
+    <img class="panel-mascot" src="assets/img/arale-explain.webp" alt="">
+    <h2 id="exposeTitle">亮牌宣告</h2>
+    <p>老師手上有可以亮的牌！亮出來分數加倍，但這張牌在該花色<strong>第一次被引出的那一墩</strong>不能打（除非該花色只剩它）。</p>
+    <div class="expose-cards" id="exposeCards"></div>
+    <div class="panel-actions">
+      <button class="btn ghost" id="btnExposeNone" type="button">都不亮</button>
+      <button class="btn fire" id="btnExposeOk" type="button">確定亮牌</button>
+    </div>
+  </div>
+</div>
+
+<!-- 稽核報告 -->
+<div class="overlay" id="reportModal" hidden>
+  <div class="panel report" role="dialog" aria-modal="true" aria-labelledby="reportTitle">
+    <div class="report-head">
+      <div>
+        <span class="eyebrow" id="reportNo">稽核報告 GZ-01</span>
+        <h2 id="reportTitle">第 1 手 稽核結果</h2>
+      </div>
+      <span class="stamp" id="reportStamp">已稽核</span>
+    </div>
+    <div class="table-scroll">
+      <table class="report-table">
+        <thead><tr><th>受稽核者</th><th>收到的分數牌</th><th>計算</th><th>本手</th><th>累計</th><th>稽核判定</th></tr></thead>
+        <tbody id="reportRows"></tbody>
+      </table>
+    </div>
+    <div class="panel-actions">
+      <button class="btn fire" id="btnNext" type="button">下一手</button>
+    </div>
+  </div>
+</div>
+
+<!-- 證書 -->
+<div class="overlay" id="certModal" hidden>
+  <div class="panel cert" role="dialog" aria-modal="true" aria-labelledby="certTitle">
+    <div class="cert-border">
+      <span class="eyebrow" id="certNo">證書編號 GZ-2026-0001</span>
+      <h2 id="certTitle">拱豬管理系統 驗證證書</h2>
+      <p class="cert-to">茲證明</p>
+      <p class="cert-name" id="certName">Allan</p>
+      <p class="cert-body">於本次拱豬夜市中，展現卓越的風險管理與持續改善能力，<br>符合「GZ 27001:2026 拱豬管理系統」之全部要求。</p>
+      <ol class="cert-rank" id="certRank"></ol>
+      <div class="cert-sign">
+        <span>主導稽核員<br><b>Allan</b></span>
+        <img src="assets/img/arale-cheer.webp" alt="">
+        <span>技術專家<br><b>阿拉蕾</b></span>
+      </div>
+    </div>
+    <div class="panel-actions">
+      <button class="btn fire" id="btnAgain" type="button">再開一局</button>
+    </div>
+  </div>
+</div>
+
+<!-- 設定 -->
+<div class="overlay" id="settingsModal" hidden>
+  <div class="panel settings" role="dialog" aria-modal="true" aria-labelledby="settingsTitle">
+    <h2 id="settingsTitle">設定</h2>
+    <p class="hint" id="voiceSupport"></p>
+    <div class="voice-grid">
+      <div class="voice-card" data-who="allan">
+        <img src="assets/img/allan-lecture.webp" alt="">
+        <h3>Allan 的聲音</h3>
+        <label for="voice-allan">聲線</label>
+        <select id="voice-allan"></select>
+        <label for="pitch-allan">音高 <output id="pitchOut-allan"></output></label>
+        <input type="range" id="pitch-allan" min="0.5" max="1.6" step="0.05">
+        <label for="rate-allan">語速 <output id="rateOut-allan"></output></label>
+        <input type="range" id="rate-allan" min="0.7" max="1.5" step="0.05">
+        <button class="btn ghost" type="button" data-test="allan">試聽</button>
+      </div>
+      <div class="voice-card" data-who="arale">
+        <img src="assets/img/arale-explain.webp" alt="">
+        <h3>阿拉蕾的聲音</h3>
+        <label for="voice-arale">聲線</label>
+        <select id="voice-arale"></select>
+        <label for="pitch-arale">音高 <output id="pitchOut-arale"></output></label>
+        <input type="range" id="pitch-arale" min="0.5" max="1.8" step="0.05">
+        <label for="rate-arale">語速 <output id="rateOut-arale"></output></label>
+        <input type="range" id="rate-arale" min="0.7" max="1.5" step="0.05">
+        <button class="btn ghost" type="button" data-test="arale">試聽</button>
+      </div>
+    </div>
+    <div class="settings-row">
+      <label><input type="checkbox" id="optNpcVoice"> 黑帽阿駭、釣魚姐也開口說話</label>
+      <label><input type="checkbox" id="optSfx"> 音效</label>
+      <label for="optSpeed">出牌速度
+        <select id="optSpeed"><option value="slow">慢</option><option value="mid">中</option><option value="fast">快</option></select>
+      </label>
+    </div>
+    <div class="panel-actions">
+      <button class="btn fire" id="btnSettingsClose" type="button">完成</button>
+    </div>
+  </div>
+</div>
+
+<!-- 警報 -->
+<div class="alarm" id="alarm" hidden><div class="alarm-band"><b id="alarmTitle">RANSOM-PIG ALERT</b><span id="alarmText"></span></div></div>
+
+<script src="js/engine.js"></script>
+<script src="js/ai.js"></script>
+<script src="js/lines.js"></script>
+<script src="js/voice.js"></script>
+<script src="js/scene.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>

@@ -1,0 +1,194 @@
+<!doctype html>
+<html lang="zh-Hant-TW">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>拱豬規則說明</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bungee&family=Chiron+GoRound+TC:wght@400;700;900&family=Noto+Sans+TC:wght@400;500;700;900&family=Azeret+Mono:wght@500;700&display=swap">
+<link rel="stylesheet" href="css/style.css">
+<style>
+  body.rules { overflow: auto; background: var(--night-0); }
+  .rules-wrap {
+    position: relative; z-index: 2; max-width: 980px; margin: 0 auto;
+    padding-left: max(16px, env(safe-area-inset-left, 0px));
+    padding-right: max(16px, env(safe-area-inset-right, 0px));
+    padding-block: 24px 60px;
+  }
+  .rules-top { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin-bottom: 24px; }
+  .rules-hero {
+    display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 16px; align-items: end;
+    background: linear-gradient(180deg, #d63a24, #9e1d12); border: 4px solid var(--gold); border-radius: 22px;
+    padding: 22px 24px 0; box-shadow: 0 0 40px rgba(232, 64, 42, 0.45); margin-bottom: 28px;
+  }
+  .rules-hero h1 { margin: 0 0 8px; font: 900 clamp(30px, 5vw, 52px)/1.1 var(--f-display); color: #ffe7a8; letter-spacing: 0.08em; text-shadow: 0 3px 0 #6d0f08; }
+  .rules-hero p { margin: 0 0 22px; color: #ffe2c4; max-width: 52ch; }
+  .rules-hero img { width: clamp(110px, 18vw, 190px); align-self: end; }
+  .sec { background: var(--paper); color: var(--ink); border-radius: 18px; padding: 22px 24px; margin-bottom: 18px; }
+  .sec h2 { margin: 0 0 12px; font: 900 22px/1.3 var(--f-display); display: flex; gap: 10px; align-items: center; text-wrap: balance; }
+  .sec h2 small { font: 700 11px/1 var(--f-mono); color: var(--tile-blue); letter-spacing: 0.14em; }
+  .sec h3 { margin: 18px 0 6px; font: 700 16px/1.3 var(--f-display); }
+  .sec p, .sec li { color: var(--ink-soft); line-height: 1.75; max-width: 70ch; }
+  .sec ol, .sec ul { padding-left: 1.3em; margin: 6px 0; }
+  .sec strong { color: var(--ink); }
+  .cast { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; }
+  .cast-card { display: grid; grid-template-columns: 60px minmax(0, 1fr); gap: 10px; align-items: start; background: #f3ecdc; border-radius: 14px; padding: 12px; }
+  .cast-card img { width: 60px; height: 60px; border-radius: 50%; object-fit: cover; object-position: 50% 20%; border: 3px solid var(--c); background: #fff; }
+  .cast-card b { display: block; font: 900 16px/1.3 var(--f-display); color: var(--ink); }
+  .cast-card span { font-size: 13px; color: var(--ink-soft); line-height: 1.6; }
+  .score-table { width: 100%; border-collapse: collapse; min-width: 520px; }
+  .score-table th, .score-table td { padding: 9px 10px; border-bottom: 1px solid #ddd5c4; text-align: left; vertical-align: middle; }
+  .score-table th { font: 700 12px/1.2 var(--f-display); border-bottom: 2px solid var(--ink); color: var(--ink-soft); }
+  .score-table td.num { font-family: var(--f-mono); font-variant-numeric: tabular-nums; white-space: nowrap; color: var(--ink); font-weight: 700; }
+  .cards-row { display: flex; gap: 10px; flex-wrap: wrap; --cw: 66px; margin: 8px 0; }
+  .ex-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 12px; }
+  .ex { background: #f3ecdc; border-radius: 14px; padding: 12px 14px; }
+  .ex .eq { font: 700 14px/1.5 var(--f-mono); color: var(--ink); }
+  .ex .eq b { color: var(--lantern); }
+  .tip { display: grid; grid-template-columns: 70px minmax(0, 1fr); gap: 12px; align-items: start; background: #fff1b8; border-radius: 14px; padding: 12px; margin-top: 10px; }
+  .tip img { width: 70px; height: 70px; border-radius: 50%; object-fit: cover; border: 3px solid var(--gold); background: #fff; }
+  .tip p { margin: 0; color: #4a3a00; }
+  .rules .chip { vertical-align: middle; }
+  .flow { counter-reset: step; list-style: none; padding: 0 !important; display: grid; gap: 10px; }
+  .flow li { counter-increment: step; display: grid; grid-template-columns: 36px minmax(0, 1fr); gap: 10px; align-items: start; }
+  .flow li::before { content: counter(step); display: grid; place-items: center; width: 32px; height: 32px; border-radius: 50%; background: var(--lantern); color: #fff; font: 900 15px/1 var(--f-display); }
+  @media (max-width: 600px) {
+    .rules-hero { grid-template-columns: 1fr; }
+    .rules-hero img { justify-self: end; margin-top: -20px; }
+    .sec { padding: 18px 16px; }
+  }
+</style>
+</head>
+<body class="rules">
+<canvas id="sky" aria-hidden="true"></canvas>
+<div class="lantern-string" id="lanterns" aria-hidden="true" hidden></div>
+<div class="rules-wrap">
+  <div class="rules-top">
+    <span class="brand"><span class="brand-zh">拱豬夜市</span><span class="brand-en">HOUSE RULES</span></span>
+    <a class="btn fire" href="index.html">回到牌桌</a>
+  </div>
+
+  <header class="rules-hero">
+    <div>
+      <h1>拱豬規則說明</h1>
+      <p>四個人、一副 52 張牌、沒有隊友。目標很簡單：別吃到豬、少吃紅心、想辦法把羊帶回家。打完一手就結算一次，累計分數最高的人拿下證書。</p>
+    </div>
+    <img src="assets/img/arale-holo.webp" alt="阿拉蕾拿著全息面板講解規則">
+  </header>
+
+  <section class="sec" id="cast">
+    <h2>登場角色 <small>CAST</small></h2>
+    <div class="cast">
+      <div class="cast-card" style="--c:#3fb6a8"><img src="assets/img/allan-smile.webp" alt=""><div><b>Allan（你）</b><span>TEAM TAIWAN 資安顧問兼稽核員。把每一手牌都當成內部稽核，吃到豬會開立「不符合事項」。</span></div></div>
+      <div class="cast-card" style="--c:#ffd23f"><img src="assets/img/arale-cheer.webp" alt=""><div><b>阿拉蕾</b><span>Allan 的 AI 小助手，戴著耳機麥克風、隨身帶著全息面板。元氣滿滿、偶爾少根筋，會在你卡關時幫忙分析出牌。她也是對手之一，不會讓你。</span></div></div>
+      <div class="cast-card" style="--c:#7cf29a"><img src="assets/img/hacker.svg" alt=""><div><b>黑帽阿駭</b><span>零時差漏洞收藏家。打法激進，喜歡用大牌搶主導權，嘴上常說「沒有 log 可以查」。</span></div></div>
+      <div class="cast-card" style="--c:#ff7eb6"><img src="assets/img/phishy.svg" alt=""><div><b>釣魚姐</b><span>社交工程一姐。打法保守，最愛「親～恭喜中獎」。Allan 會提醒你：可疑連結不要點，請撥 165。</span></div></div>
+    </div>
+  </section>
+
+  <section class="sec" id="flow">
+    <h2>一手牌怎麼打 <small>FLOW</small></h2>
+    <ol class="flow">
+      <li><div><strong>發牌：</strong>每人 13 張。座位順序是 Allan → 黑帽阿駭 → 阿拉蕾 → 釣魚姐，依此輪流（順時針）。</div></li>
+      <li><div><strong>亮牌：</strong>手上有 ♠Q、♦J、♣10、♥A 的人，可以選擇「亮」出來，讓那張牌的效果加倍（詳見下方「亮牌」）。</div></li>
+      <li><div><strong>首墩：</strong>拿到 <strong>♣2</strong> 的人先出牌，可以出任何一張。</div></li>
+      <li><div><strong>跟牌：</strong>其他人依序出一張。<strong>有引牌的花色就必須跟</strong>；沒有該花色才可以墊任何牌。</div></li>
+      <li><div><strong>收墩：</strong>引牌花色中點數最大的人收下這一墩的 4 張牌，並由他引下一墩。A 最大、2 最小，沒有王牌。</div></li>
+      <li><div><strong>結算：</strong>13 墩打完，每個人依自己收到的「分數牌」計分，加進累計分數。</div></li>
+    </ol>
+  </section>
+
+  <section class="sec" id="score">
+    <h2>分數牌 <small>SCORING CARDS</small></h2>
+    <div class="cards-row" aria-hidden="true">
+      <div class="card black pig"><span class="corner tl"><b>Q</b><i>♠</i></span><span class="pip">♠</span><span class="tag">勒索豬</span><span class="corner br"><b>Q</b><i>♠</i></span></div>
+      <div class="card red sheep"><span class="corner tl"><b>J</b><i>♦</i></span><span class="pip">♦</span><span class="tag">羊</span><span class="corner br"><b>J</b><i>♦</i></span></div>
+      <div class="card black ten"><span class="corner tl"><b>10</b><i>♣</i></span><span class="pip">♣</span><span class="tag">變壓器</span><span class="corner br"><b>10</b><i>♣</i></span></div>
+      <div class="card red"><span class="corner tl"><b>A</b><i>♥</i></span><span class="pip">♥</span><span class="corner br"><b>A</b><i>♥</i></span></div>
+    </div>
+    <div class="table-scroll">
+      <table class="score-table">
+        <thead><tr><th>牌</th><th>名稱</th><th>分數</th><th>亮牌後</th></tr></thead>
+        <tbody>
+          <tr><td><span class="chip pig">豬</span> ♠Q</td><td>豬（本站叫「勒索豬」）</td><td class="num">-100</td><td class="num">-200</td></tr>
+          <tr><td><span class="chip sheep">羊</span> ♦J</td><td>羊（本站叫「資安預算羊」）</td><td class="num">+100</td><td class="num">+200</td></tr>
+          <tr><td><span class="chip ten">變</span> ♣10</td><td>變壓器：把你這一手的總分 ×2</td><td class="num">×2</td><td class="num">×4</td></tr>
+          <tr><td><span class="chip heart">♥</span> A</td><td>紅心 A</td><td class="num">-50</td><td class="num" rowspan="4">亮 ♥A 時<br>所有紅心 ×2</td></tr>
+          <tr><td><span class="chip heart">♥</span> K</td><td>紅心 K</td><td class="num">-40</td></tr>
+          <tr><td><span class="chip heart">♥</span> Q / J</td><td>紅心 Q、J</td><td class="num">-30 / -20</td></tr>
+          <tr><td><span class="chip heart">♥</span> 10~5、4~2</td><td>紅心 10 到 5 各 -10；4、3、2 為 0 分</td><td class="num">-10 / 0</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p>十三張紅心加起來是 -200，其他牌（含 ♠ 其他牌、♦ 其他牌、♣ 其他牌）都是 0 分。</p>
+
+    <h3>特殊情況</h3>
+    <ul>
+      <li><strong>全紅：</strong>一個人收齊 13 張紅心，紅心從 -200 變成 <strong>+200</strong>。這時如果他也收了豬，豬會<strong>翻正變成 +100</strong>。</li>
+      <li><strong>變壓器單獨：</strong>收到 ♣10，但沒有任何其他分數牌（沒豬、沒羊、一張紅心都沒有），算 <strong>+50</strong>（亮牌則 +100）。</li>
+      <li><strong>變壓器加倍：</strong>只要還有其他分數牌，♣10 就把你這一手的總分乘 2（亮牌乘 4）。好分變更好，壞分變更慘。</li>
+      <li><strong>大滿貫：</strong>一個人收齊全部 16 張分數牌：(200 + 100 + 100) × 2 = <strong>+800</strong>。</li>
+    </ul>
+  </section>
+
+  <section class="sec" id="expose">
+    <h2>亮牌 <small>EXPOSURE</small></h2>
+    <p>發完牌後，手上有 ♠Q、♦J、♣10、♥A 的人可以把它亮給大家看，效果加倍：豬變 -200、羊變 +200、變壓器變 ×4（單獨 +100）、亮 ♥A 則全部紅心 ×2。亮牌的效果是針對<strong>最後收到這張牌的人</strong>，不一定是亮牌的人。</p>
+    <p><strong>限制：</strong>亮過的牌，在該花色<strong>第一次被引出的那一墩</strong>不能打出（包含自己引牌），除非手上那個花色只剩這一張。在別的花色的墩裡墊出去，則不受限制。遊戲中被限制的牌會變暗，點不下去。</p>
+    <div class="tip"><img src="assets/img/arale-think.webp" alt=""><p><strong>阿拉蕾的小提醒：</strong>手上黑桃很多又有很多小黑桃，才考慮亮豬；方塊 A、K 都在手上，亮羊比較穩。亮 ♥A 適合紅心很少的時候，讓吃紅心的人更痛！</p></div>
+  </section>
+
+  <section class="sec" id="examples">
+    <h2>計分範例 <small>EXAMPLES</small></h2>
+    <div class="ex-grid">
+      <div class="ex"><p>收到 ♠Q、♥K、♥5</p><p class="eq">-100 − 40 − 10 = <b>-150</b></p></div>
+      <div class="ex"><p>收到 ♦J、♥A、♣10</p><p class="eq">(100 − 50) × 2 = <b>+100</b></p></div>
+      <div class="ex"><p>只收到 ♣10（有亮牌）</p><p class="eq">單獨變壓器 = <b>+100</b></p></div>
+      <div class="ex"><p>收到 ♠Q、♥A，♣10 有亮牌</p><p class="eq">(-100 − 50) × 4 = <b>-600</b></p></div>
+      <div class="ex"><p>收齊 13 張紅心 + ♠Q</p><p class="eq">200 + 100 = <b>+300</b></p></div>
+      <div class="ex"><p>16 張分數牌全收</p><p class="eq">(200 + 100 + 100) × 2 = <b>+800</b></p></div>
+    </div>
+  </section>
+
+  <section class="sec" id="end">
+    <h2>散場與稽核判定 <small>GAME END</small></h2>
+    <p>開局時可以選：<strong>有人累計到 -1000 分就散場</strong>（傳統打法），或<strong>快速局打 4 手</strong>。散場時累計分數最高的人，獲頒「拱豬管理系統驗證證書」。</p>
+    <p>每一手打完，Allan 會出一份稽核報告，依這一手的分數給判定：</p>
+    <div class="table-scroll">
+      <table class="score-table">
+        <thead><tr><th>本手分數</th><th>稽核判定</th></tr></thead>
+        <tbody>
+          <tr><td class="num">全收 16 張</td><td><span class="verdict slam">大滿貫 · 卓越績效</span></td></tr>
+          <tr><td class="num">&gt; 0</td><td><span class="verdict good">優良實務</span></td></tr>
+          <tr><td class="num">0</td><td><span class="verdict ok">符合</span></td></tr>
+          <tr><td class="num">-1 ~ -99</td><td><span class="verdict minor">觀察事項</span></td></tr>
+          <tr><td class="num">-100 ~ -299</td><td><span class="verdict minor">次要不符合</span></td></tr>
+          <tr><td class="num">≤ -300</td><td><span class="verdict major">主要不符合</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="sec" id="tips">
+    <h2>新手攻略 <small>TIPS</small></h2>
+    <ul>
+      <li><strong>釣豬：</strong>豬還沒出現、而你手上沒有豬時，出小黑桃逼拿豬的人跟牌。</li>
+      <li><strong>別亂出黑桃 A、K：</strong>豬還在外面時，你的 ♠A、♠K 很容易被塞豬。沒黑桃可跟時，先把它們墊掉。</li>
+      <li><strong>斷門：</strong>早點把某一門出光，之後就能在那一門墊掉豬或大紅心。</li>
+      <li><strong>搶羊：</strong>方塊大牌都出完了，手上的 ♦J 就可以安心領回家。</li>
+      <li><strong>卡住了？</strong>按「問阿拉蕾」，她會把建議的牌標出來，順便講原因。</li>
+    </ul>
+    <div class="tip"><img src="assets/img/allan-lecture.webp" alt=""><p><strong>Allan：</strong>豬就是一個高風險，風險處置四選一：規避、降低、移轉、接受。拱豬這個遊戲，就是把「移轉」練到爐火純青。</p></div>
+  </section>
+
+  <section class="sec" id="voice">
+    <h2>語音與對話 <small>VOICE</small></h2>
+    <p>對話使用瀏覽器內建的語音合成（台灣華語）。Allan 預設使用台灣男聲（Microsoft YunJhe／Zhiwei），阿拉蕾預設使用台灣年輕女聲（Microsoft HsiaoYu／HsiaoChen／Yating 等）。<strong>用 Microsoft Edge 開啟可以拿到最完整的台灣聲線</strong>；其他瀏覽器會自動挑最接近的中文聲線，再用音高區分兩人。到牌桌右上角「設定」可以指定聲線、調整音高和語速，每一句對話旁的「▶ 播放」可以重聽。</p>
+    <p>本站採用的是常見的拱豬玩法之一，各地規則略有不同，例如有些地方首墩規定必須出 ♣2、或不採用亮牌，請以本頁為準。</p>
+  </section>
+</div>
+<script src="js/scene.js"></script>
+</body>
+</html>

@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200">
+  <title>黑帽阿駭</title>
+  <g stroke="#111" stroke-width="5" stroke-linejoin="round" stroke-linecap="round">
+    <path d="M30 200 C30 150 55 128 100 128 C145 128 170 150 170 200 Z" fill="#2b2d42"/>
+    <path d="M100 128 L88 200 M100 128 L112 200" fill="none" stroke-width="3"/>
+    <path d="M42 112 C34 50 62 18 100 18 C138 18 166 50 158 112 C150 140 125 150 100 150 C75 150 50 140 42 112 Z" fill="#33364f"/>
+    <path d="M62 100 C60 66 76 48 100 48 C124 48 140 66 138 100 C136 124 120 136 100 136 C80 136 64 124 62 100 Z" fill="#e9b98f"/>
+    <path d="M62 92 C70 70 84 62 100 62 C116 62 130 70 138 92 C120 84 80 84 62 92 Z" fill="#22243a"/>
+    <rect x="66" y="88" width="68" height="20" rx="8" fill="#0d1b12"/>
+    <path d="M100 92 V104" stroke="#7cf29a" stroke-width="3"/>
+    <path d="M86 112 C94 120 106 120 114 112" fill="none" stroke-width="4"/>
+    <path d="M104 118 l8 -3" stroke-width="3"/>
+  </g>
+  <text x="80" y="104" font-family="monospace" font-size="13" font-weight="700" fill="#7cf29a" text-anchor="middle">&lt;/</text>
+  <text x="121" y="104" font-family="monospace" font-size="13" font-weight="700" fill="#7cf29a" text-anchor="middle">&gt;</text>
+  <circle cx="58" cy="176" r="10" fill="#7cf29a" stroke="#111" stroke-width="4"/>
+  <text x="58" y="181" font-family="monospace" font-size="12" font-weight="700" fill="#111" text-anchor="middle">0</text>
+  <circle cx="142" cy="176" r="10" fill="#7cf29a" stroke="#111" stroke-width="4"/>
+  <text x="142" y="181" font-family="monospace" font-size="12" font-weight="700" fill="#111" text-anchor="middle">1</text>
+</svg>
